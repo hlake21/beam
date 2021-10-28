@@ -223,7 +223,7 @@ class WriteRename extends DoFn<Iterable<KV<TableDestination, WriteTables.Result>
       WriteDisposition writeDisposition,
       CreateDisposition createDisposition,
       String kmsKey,
-      String loadJobProjectId) {
+      ValueProvider<String> loadJobProjectId) {
     JobConfigurationTableCopy copyConfig =
         new JobConfigurationTableCopy()
             .setSourceTables(tempTables)
