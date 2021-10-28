@@ -65,6 +65,7 @@ class WriteRename extends DoFn<Iterable<KV<TableDestination, WriteTables.Result>
   private final CreateDisposition firstPaneCreateDisposition;
   private final int maxRetryJobs;
   private final String kmsKey;
+  private final ValueProvider<String> loadJobProjectId;
   private @Nullable DatasetService datasetService;
 
   private static class PendingJobData {
@@ -90,13 +91,15 @@ class WriteRename extends DoFn<Iterable<KV<TableDestination, WriteTables.Result>
       WriteDisposition writeDisposition,
       CreateDisposition createDisposition,
       int maxRetryJobs,
-      String kmsKey) {
+      String kmsKey,
+      ValueProvider<String> loadJobProjectId) {
     this.bqServices = bqServices;
     this.jobIdToken = jobIdToken;
     this.firstPaneWriteDisposition = writeDisposition;
     this.firstPaneCreateDisposition = createDisposition;
     this.maxRetryJobs = maxRetryJobs;
     this.kmsKey = kmsKey;
+    this.loadJobProjectId = loadJobProjectId;
   }
 
   @StartBundle
@@ -205,7 +208,8 @@ class WriteRename extends DoFn<Iterable<KV<TableDestination, WriteTables.Result>
             tempTables,
             writeDisposition,
             createDisposition,
-            kmsKey);
+            kmsKey,
+            loadJobProjectId);
     return new PendingJobData(retryJob, finalTableDestination, tempTables);
   }
 
@@ -217,7 +221,8 @@ class WriteRename extends DoFn<Iterable<KV<TableDestination, WriteTables.Result>
       List<TableReference> tempTables,
       WriteDisposition writeDisposition,
       CreateDisposition createDisposition,
-      String kmsKey) {
+      String kmsKey,
+      String loadJobProjectId) {
     JobConfigurationTableCopy copyConfig =
         new JobConfigurationTableCopy()
             .setSourceTables(tempTables)
@@ -232,7 +237,7 @@ class WriteRename extends DoFn<Iterable<KV<TableDestination, WriteTables.Result>
     String bqLocation =
         BigQueryHelpers.getDatasetLocation(datasetService, ref.getProjectId(), ref.getDatasetId());
 
-    String projectId = ref.getProjectId();
+    String projectId = loadJobProjectId == null ? ref.getProjectId() : loadJobProjectId.get();
     BigQueryHelpers.PendingJob retryJob =
         new BigQueryHelpers.PendingJob(
             jobId -> {

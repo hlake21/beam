@@ -372,7 +372,8 @@ class BatchLoads<DestinationT, ElementT>
                         writeDisposition,
                         createDisposition,
                         maxRetryJobs,
-                        kmsKey))
+                        kmsKey,
+                        loadJobProjectId))
                 .withSideInputs(copyJobIdPrefixView));
     writeSinglePartition(partitions.get(singlePartitionTag), loadJobIdPrefixView);
     return writeResult(p);
@@ -438,7 +439,8 @@ class BatchLoads<DestinationT, ElementT>
                         writeDisposition,
                         createDisposition,
                         maxRetryJobs,
-                        kmsKey))
+                        kmsKey,
+                        loadJobProjectId))
                 .withSideInputs(loadJobIdPrefixView));
     writeSinglePartition(partitions.get(singlePartitionTag), loadJobIdPrefixView);
     return writeResult(p);
